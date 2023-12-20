@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfinitGithubTask", "InfinitGithubTask\InfinitGithubTask.csproj", "{7CC249A4-D678-4AD6-84BD-915C01B67745}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InfinitGithubTask.Tests", "InfinitGithubTask.Tests\InfinitGithubTask.Tests.csproj", "{DB5BE29A-C124-4FD4-B8E0-4672FAC74303}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7CC249A4-D678-4AD6-84BD-915C01B67745}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7CC249A4-D678-4AD6-84BD-915C01B67745}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7CC249A4-D678-4AD6-84BD-915C01B67745}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7CC249A4-D678-4AD6-84BD-915C01B67745}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB5BE29A-C124-4FD4-B8E0-4672FAC74303}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB5BE29A-C124-4FD4-B8E0-4672FAC74303}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB5BE29A-C124-4FD4-B8E0-4672FAC74303}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB5BE29A-C124-4FD4-B8E0-4672FAC74303}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
