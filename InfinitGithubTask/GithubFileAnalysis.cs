@@ -77,8 +77,8 @@ public class GithubFileAnalysis(IGitHubClient client)
                      i.Type == TreeType.Blob && (i.Path.EndsWith(".js") || i.Path.EndsWith(".ts"))))
         {
             Console.WriteLine($"Processing file: {item.Path}");
-            var blob = await client.Git.Blob.Get(repoOwner, repoName, item.Sha);
-            var fileContent = DecodeBase64String(blob.Content);
+            var contents = await client.Repository.Content.GetAllContents(repoOwner, repoName, item.Path);
+            var fileContent = contents[0].Content;
             CountLetters(fileContent, letterFrequency);
         }
 
@@ -103,11 +103,5 @@ public class GithubFileAnalysis(IGitHubClient client)
             else
                 frequencies[charToCount] = 1;
         }
-    }
-
-    private string DecodeBase64String(string base64Content)
-    {
-        byte[] data = Convert.FromBase64String(base64Content);
-        return Encoding.UTF8.GetString(data);
     }
 }
