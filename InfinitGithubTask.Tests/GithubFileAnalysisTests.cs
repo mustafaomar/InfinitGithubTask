@@ -10,8 +10,8 @@ public class GithubFileAnalysisTests
     private Mock<IGitHubClient> mockGitHubClient;
     private Mock<ITreesClient> mockTreesClient;
     private Mock<IGitDatabaseClient> mockGitDatabaseClient;
-    private Mock<IBlobsClient> mockBlobsClient;
     private Mock<IRateLimitClient> mockRateLimitClient;
+    private Mock<IRepositoryContentsClient> mockRepositoryContentClient;
     private GithubFileAnalysis githubFileAnalysis;
 #pragma warning restore CS8618
 
@@ -21,19 +21,19 @@ public class GithubFileAnalysisTests
         mockGitHubClient = new Mock<IGitHubClient>();
         mockTreesClient = new Mock<ITreesClient>();
         mockGitDatabaseClient = new Mock<IGitDatabaseClient>();
-        mockBlobsClient = new Mock<IBlobsClient>();
         mockRateLimitClient = new Mock<IRateLimitClient>();
+        mockRepositoryContentClient = new Mock<IRepositoryContentsClient>();
 
         mockGitHubClient.Setup(c => c.Git).Returns(mockGitDatabaseClient.Object);
+        mockGitHubClient.Setup(c => c.Repository.Content).Returns(mockRepositoryContentClient.Object);
         mockGitDatabaseClient.Setup(g => g.Tree).Returns(mockTreesClient.Object);
-        mockGitDatabaseClient.Setup(g => g.Blob).Returns(mockBlobsClient.Object);
         // reference
         var mockReference = new Mock<IReferencesClient>();
         var fakeReference = CreateFakeReference();
         mockReference.Setup(r => r.Get(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(fakeReference);
         mockGitDatabaseClient.Setup(g => g.Reference).Returns(mockReference.Object);
-        
+
         //rate limit
         var rateLimit = new RateLimit(5000, 4999, DateTimeOffset.UtcNow.ToUnixTimeSeconds());
         var resources =
@@ -41,16 +41,17 @@ public class GithubFileAnalysisTests
         var miscellaneousRateLimit = new MiscellaneousRateLimit(resources, rateLimit);
         mockRateLimitClient.Setup(client => client.GetRateLimits()).ReturnsAsync(miscellaneousRateLimit);
         mockGitHubClient.Setup(c => c.RateLimit).Returns(mockRateLimitClient.Object);
-        
+
         //tree response
         var fakeTreeResponse = CreateFakeTreeResponse();
         mockTreesClient.Setup(t => t.GetRecursive("lodash", "lodash", It.IsAny<string>()))
             .ReturnsAsync(fakeTreeResponse);
 
-        //Blob (test file content)
-        var fakeBlobResponse = CreateFakeBlobResponse();
-        mockBlobsClient.Setup(b => b.Get("lodash", "lodash", It.IsAny<string>()))
-            .ReturnsAsync(fakeBlobResponse);
+        //file (test file content)
+        var fakeFileResponse = CreateFakeFileResponse();
+        mockRepositoryContentClient.Setup(b => b.GetAllContents("lodash", "lodash", It.IsAny<string>()))
+            .ReturnsAsync(fakeFileResponse);
+
 
         githubFileAnalysis = new GithubFileAnalysis(mockGitHubClient.Object);
     }
@@ -62,7 +63,7 @@ public class GithubFileAnalysisTests
         var result = await githubFileAnalysis.AnalyzeRepoLetterFrequency();
 
         mockTreesClient.Verify(t => t.GetRecursive("lodash", "lodash", It.IsAny<string>()), Times.Once);
-        mockBlobsClient.Verify(b => b.Get("lodash", "lodash", It.IsAny<string>()), Times.AtLeastOnce());
+        mockRepositoryContentClient.Verify(b => b.GetAllContents("lodash", "lodash", It.IsAny<string>()), Times.AtLeastOnce());
         Assert.That(expectedLetterFrequency, Is.EqualTo(result));
     }
 
@@ -82,9 +83,9 @@ public class GithubFileAnalysisTests
         return new TreeResponse(fakeTreeSha, fakeTreeUrl, treeItems.AsReadOnly(), truncated);
     }
 
-    private Blob CreateFakeBlobResponse()
+    private IReadOnlyList<RepositoryContent> CreateFakeFileResponse()
     {
-        string fileContent = "aaab"; 
+        string fileContent = "aaab";
         byte[] contentBytes = System.Text.Encoding.UTF8.GetBytes(fileContent);
         string base64Content = System.Convert.ToBase64String(contentBytes);
 
@@ -92,8 +93,24 @@ public class GithubFileAnalysisTests
         string sha = "fake_blob_sha";
         int size = contentBytes.Length;
 
-        return new Blob(nodeId, base64Content, EncodingType.Base64, sha, size);
+        // Assuming some values for the parameters that are not provided in your snippet
+        string name = "fake_name";
+        string path = "fake/path";
+        ContentType type = ContentType.File; // Use the appropriate ContentType
+        string downloadUrl = "http://fakeurl.com/download";
+        string url = "http://fakeurl.com";
+        string gitUrl = "http://fakeurl.com/git";
+        string htmlUrl = "http://fakeurl.com/html";
+        string target = null; // Assuming it's not a symlink
+        string submoduleGitUrl = null; // Assuming it's not a submodule
+
+        var repositoryContent = new RepositoryContent(name, path, sha, size, type, downloadUrl, url, gitUrl, htmlUrl,
+            EncodingType.Base64.ToString(), base64Content, target, submoduleGitUrl);
+
+        var list = new List<RepositoryContent> { repositoryContent };
+        return list.AsReadOnly();
     }
+
 
     private Reference CreateFakeReference()
     {
